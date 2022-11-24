@@ -8,6 +8,8 @@ from django.db import models
 class customer(models.Model):
     # 学号 unique=True 该字段唯一，为主键
     id = models.CharField('学号', primary_key=True, max_length=20)
+    # 密码（哈希加密）
+    password = models.CharField('密码', max_length=20,default=1234)
     # 姓名 字符串 最大长度20 不为空
     name = models.CharField('姓名', max_length=20)
     # 年龄 整数 null=False, 表示该字段不能为空
@@ -37,6 +39,8 @@ class court(models.Model):
 class administrator(models.Model):
     # 管理人员编号
     id = models.IntegerField('编号', primary_key=True)
+    # 密码（哈希加密）
+    password = models.CharField('密码', max_length=20,default=1234)
     # 姓名 字符串 最大长度20 不为空
     name = models.CharField('姓名', max_length=20, null=False)
     # 年龄 整数 null=False, 表示该字段不能为空

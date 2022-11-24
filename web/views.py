@@ -6,27 +6,53 @@ import web.models
 from web.models import customer, administrator, status, court
 from django.http import HttpResponse, JsonResponse
 
+mod1 = int(1333333333333333331)
+mod2 = int(1) << 64
 
-def customer_insert(request):
+
+def get_hash(password):
+    hash = int(0)
+    for i in password:
+        hash = (hash * mod1 + int(i)) % mod2
+    return str(hash)
+
+
+def test_equal(password:str, hash_password:str):
+    return get_hash(password) == hash_password
+
+
+def customer_login(request):
+    id = request.GET.get('id')
+    password = str(request.GET.get('password'))
+    sql = f"select * from customer where id='{id}'"
+    result = customer.objects.raw(sql)
+    if not result: return JsonResponse({'status':0})
+    if not password or not test_equal(password, result[0].password):
+        return JsonResponse({'status': 0})
+    return JsonResponse({'status':1})
+
+
+def customer_register(request):
     id = request.GET.get('id')
     name = request.GET.get('name')
     age = request.GET.get('age')
     sex = request.GET.get('sex')
+    password = str(request.GET.get('password'))
     try:
         customer.objects.get(id=id)
     except web.models.customer.DoesNotExist:
-        cust = customer(id=id,name=name,age=age,sex=sex)
+        cust = customer(id=id, name=name, age=age, sex=sex, password=get_hash(password))
         cust.save()
-        return JsonResponse({"status":1})
+        return JsonResponse({"status": 1})
     # 插入失败，存在了
-    return JsonResponse({"status":0})
+    return JsonResponse({"status": 0})
 
 
 def customer_select(request):
     sel = request.GET.get('id')
     sql = f"select * from customer where id='{sel}'"
     result = customer.objects.raw(sql)
-    content = {1:1}
+    content = {1: 1}
     for i in result:
         content = {'id': i.id, 'name': i.name, 'age': i.age, 'sex': i.sex}
 
@@ -34,18 +60,18 @@ def customer_select(request):
     sql = f"select * from status where customer='{sel}'"
     result = customer.objects.raw(sql)
     for i in result:
-        sta = {'court_id': i.id, 'administrator_id': i.administrator_id ,
+        sta = {'court_id': i.id, 'administrator_id': i.administrator_id,
                'year': i.occupy_year, 'month': i.occupy_month,
                'date': i.occupy_date, 'hour': i.occupy_hour}
         arr.append(sta)
-    return JsonResponse({"msg":content,"data":arr})
+    return JsonResponse({"msg": content, "data": arr})
 
 
 def customer_modify(request):
     try:
         cust = customer.objects.get(id=request.GET.get('id'))
     except web.models.customer.DoesNotExist:
-        return JsonResponse({'status':0})
+        return JsonResponse({'status': 0})
     if request.GET.get('name'):
         cust.name = request.GET.get('name')
     if request.GET.get('age'):
@@ -53,7 +79,7 @@ def customer_modify(request):
     if request.GET.get('sex'):
         cust.sex = request.GET.get('sex')
     cust.save()
-    return JsonResponse({'status':1})
+    return JsonResponse({'status': 1})
 
 
 def customer_delete(request):
@@ -64,12 +90,24 @@ def customer_delete(request):
             cur.execute(sql)
     except Exception as e:
         print(e)
-        return JsonResponse({'status':0})
+        return JsonResponse({'status': 0})
     return JsonResponse({'status': 1})
 
 
-def administrator_insert(request):
+def administrator_login(request):
     id = request.GET.get('id')
+    password = str(request.GET.get('password'))
+    sql = f"select * from administrator where id='{id}'"
+    result = administrator.objects.raw(sql)
+    if not result: return JsonResponse({'status':0})
+    if not password or not test_equal(password, result[0].password):
+        return JsonResponse({'status': 0})
+    return JsonResponse({'status':1})
+
+
+def administrator_register(request):
+    id = request.GET.get('id')
+    password = str(request.GET.get('password'))
     name = request.GET.get('name')
     age = request.GET.get('age')
     sex = request.GET.get('sex')
@@ -78,35 +116,35 @@ def administrator_insert(request):
         administrator.objects.get(id=id)
     except web.models.administrator.DoesNotExist:
         admin = administrator(id=id, mobile=mobile, name=name,
-                              age=age, sex=sex)
+                              age=age, sex=sex, password=get_hash(password))
         admin.save()
-        return JsonResponse({'status':1})
-    return JsonResponse({'status':0})
+        return JsonResponse({'status': 1})
+    return JsonResponse({'status': 0})
 
 
 def administrator_select(request):
     sel = request.GET.get('id')
     sql = f"select * from administrator where id='{sel}'"
     result = administrator.objects.raw(sql)
-    content = {1:1}
+    content = {1: 1}
     for i in result:
         content = {'admin_id': i.id, 'name': i.name, 'age': i.age, 'sex': i.sex, 'mobile': i.mobile}
     arr = []
     sql = f"select * from status where administrator_id='{sel}'"
     result = administrator.objects.raw(sql)
     for i in result:
-        sta = {'court_id':i.court_id,'customer':i.customer,
+        sta = {'court_id': i.court_id, 'customer': i.customer,
                'year': i.occupy_year, 'month': i.occupy_month,
                'date': i.occupy_date, 'hour': i.occupy_hour}
         arr.append(sta)
-    return JsonResponse({'msg':content,'data':arr})
+    return JsonResponse({'msg': content, 'data': arr})
 
 
 def administrator_modify(request):
     try:
         admin = administrator.objects.get(id=request.GET.get('id'))
     except web.models.administrator.DoesNotExist:
-        return JsonResponse({'status':0})
+        return JsonResponse({'status': 0})
     if request.GET.get('name'):
         admin.name = request.GET.get('name')
     if request.GET.get('age'):
@@ -116,7 +154,7 @@ def administrator_modify(request):
     if request.GET.get('mobile'):
         admin.mobile = request.GET.get('mobile')
     admin.save()
-    return JsonResponse({'status':1})
+    return JsonResponse({'status': 1})
 
 
 def administrator_delete(request):
@@ -190,7 +228,7 @@ def court_delete(request):
 
 
 def status_display(request):
-    #展示某年某月某日的球场安排情况
+    # 展示某年某月某日的球场安排情况
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
     print(time)
@@ -199,7 +237,7 @@ def status_display(request):
     arr = [0 for i in range(24)]
     for i in result:
         arr[i.occupy_hour] = 1
-    res = [{"时间":i} for i in range(24) if arr[i]==0]
+    res = [{"时间": i} for i in range(24) if arr[i] == 0]
     return HttpResponse(res)
 
 
@@ -216,15 +254,16 @@ def status_insert(request):
     court_id = request.GET.get('id')
     customer = request.GET.get('customer')
     administrator_id = request.GET.get('admin')
-    #时间格式：2022-1-4-9(表示2022年1月4号9点-10点时间段)
-    #年，月，日，时
+    # 时间格式：2022-1-4-9(表示2022年1月4号9点-10点时间段)
+    # 年，月，日，时
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
-    sta = status(court_id=court_id,customer=customer,administrator_id=administrator_id,
-                 occupy_year=time[0],occupy_month=time[1],occupy_date=time[2],
+    sta = status(court_id=court_id, customer=customer, administrator_id=administrator_id,
+                 occupy_year=time[0], occupy_month=time[1], occupy_date=time[2],
                  occupy_hour=time[3])
     sta.save()
-    return  HttpResponse([{"年":time[0],"月":time[1],"日":time[2],"时":time[3]}])
+    return HttpResponse([{"年": time[0], "月": time[1], "日": time[2], "时": time[3]}])
+
 
 def status_delete(request):
     customer = request.GET.get('customer')
@@ -234,4 +273,4 @@ def status_delete(request):
     with connection.cursor() as cur:
         cur.execute(sql)
     print(sql)
-    return HttpResponse([{"顾客手机":customer,"年": time[0], "月": time[1], "日": time[2], "时": time[3]}])
+    return HttpResponse([{"顾客手机": customer, "年": time[0], "月": time[1], "日": time[2], "时": time[3]}])
