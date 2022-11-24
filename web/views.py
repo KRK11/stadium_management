@@ -187,24 +187,30 @@ def status_display(request):
     #展示某年某月某日的球场安排情况
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
-    sql = f'select * from status where ' \
-          f'occupy_year={time[0]} and' \
-          f'occupy_month={time[1]} and' \
-          f'occupy_date={time[2]}'
+    print(time)
+    sql = f'select * from status where occupy_year={time[0]} and occupy_month={time[1]} and occupy_date={time[2]}'
     result = status.objects.raw(sql)
-    arr = [i for i in result]
+    arr = [i.occupy_hour for i in result]
     return HttpResponse(arr)
 
 def status_insert(request):
-    id = request.GET.get('id')
+    court_id = request.GET.get('id')
     customer = request.GET.get('customer')
-    administrator = request.GET.get('admin')
+    administrator_id = request.GET.get('admin')
     #时间格式：2022-1-4-9(表示2022年1月4号9点-10点时间段)
     #年，月，日，时
     start = request.GET.get('start').split('-')
     start = [int(i) for i in start]
     end = request.GET.get('end').split('-')
     end = [int(i) for i in end]
-    # sql = 'select * from status where '
+    if start[:2] != end[:2]:
+        return HttpResponse("请选择同一天！")
+    arr = []
+    for i in range(start[3],end[3]+1):
+        sta = status(court_id=court_id,customer=customer,administrator_id=administrator_id,
+                     occupy_year=start[0],occupy_month=start[1],occupy_date=start[2],
+                     occupy_hour=i)
+        sta.save()
+        arr.append({'时间':sta.occupy_hour})
 
-    return  HttpResponse(start)
+    return  HttpResponse(arr)
