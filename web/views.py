@@ -4,47 +4,52 @@ from django.db import connection
 
 import web.models
 from web.models import customer, administrator, status, court
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 
 def customer_insert(request):
-    mobile = request.GET.get('mobile')
+    id = request.GET.get('id')
     name = request.GET.get('name')
     age = request.GET.get('age')
     sex = request.GET.get('sex')
     try:
-        customer.objects.get(mobile=mobile)
+        customer.objects.get(id=id)
     except web.models.customer.DoesNotExist:
-        cust = customer(mobile=mobile, name=name,
-                        age=age, sex=sex)
-        cust.save()
-        return HttpResponse("顾客" + mobile + "插入成功")
-    return HttpResponse("顾客" + mobile + "已存在")
+        try:
+            cust = customer(id=id,name=name,age=age,sex=sex)
+            cust.save()
+        except Exception as e:
+            print(e)
+            # 虽然不存在，但插入失败，可能是没有主键
+            return JsonResponse({"status":0,"exist":0})
+        # 插入成功
+        return JsonResponse({"status":1,"exist":0})
+    # 插入失败，存在了
+    return JsonResponse({"status":0,"exist":1})
 
 
 def customer_select(request):
-    sel = request.GET.get('mobile')
-    sql = f"select * from customer where mobile='{sel}'"
-    # django 执行原生的sql语句
+    sel = request.GET.get('id')
+    sql = f"select * from customer where id='{sel}'"
     result = customer.objects.raw(sql)
-
-    # result = customer.objects.filter(mobile=request.GET.get('mobile'))
-    """
-    result为<class 'django.db.models.query.QuerySet'>的对象
-    需要进行数据处理
-    """
-    arr = []
+    content = {1:1}
     for i in result:
-        content = {'手机': i.mobile, '姓名': i.name, '年龄': i.age, '性别': i.sex}
-        arr.append(content)
-    print(arr)
-    print(type(arr))
-    return HttpResponse(arr)
+        content = {'id': i.id, 'name': i.name, 'age': i.age, 'sex': i.sex}
+
+    arr = []
+    sql = f"select * from status where customer='{sel}'"
+    result = customer.objects.raw(sql)
+    for i in result:
+        sta = {'court_id': i.id, 'administrator_id': i.administrator_id ,
+               'year': i.occupy_year, 'month': i.occupy_month,
+               'date': i.occupy_date, 'hour': i.occupy_hour}
+        arr.append(sta)
+    return JsonResponse({"msg":content,"data":arr})
 
 
 def customer_modify(request):
     try:
-        cust = customer.objects.get(mobile=request.GET.get('mobile'))
+        cust = customer.objects.get(id=request.GET.get('id'))
     except web.models.customer.DoesNotExist:
         return HttpResponse("不存在此人，无法修改！")
     if request.GET.get('name'):
@@ -54,7 +59,7 @@ def customer_modify(request):
     if request.GET.get('sex'):
         cust.sex = request.GET.get('sex')
     cust.save()
-    mp = {'手机': cust.mobile, '姓名': cust.name, '年龄': cust.age, '性别': cust.sex}
+    mp = {'id': cust.id, '姓名': cust.name, '年龄': cust.age, '性别': cust.sex}
     arr = [mp]
     return HttpResponse(arr)
 
