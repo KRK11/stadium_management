@@ -191,8 +191,9 @@ def status_display(request):
           f'occupy_year={time[0]} and' \
           f'occupy_month={time[1]} and' \
           f'occupy_date={time[2]}'
-
-    return
+    result = status.objects.raw(sql)
+    arr = [i for i in result]
+    return HttpResponse(arr)
 
 def status_insert(request):
     id = request.GET.get('id')
