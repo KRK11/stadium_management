@@ -15,17 +15,11 @@ def customer_insert(request):
     try:
         customer.objects.get(id=id)
     except web.models.customer.DoesNotExist:
-        try:
-            cust = customer(id=id,name=name,age=age,sex=sex)
-            cust.save()
-        except Exception as e:
-            print(e)
-            # 虽然不存在，但插入失败，可能是没有主键
-            return JsonResponse({"status":0,"exist":0})
-        # 插入成功
-        return JsonResponse({"status":1,"exist":0})
+        cust = customer(id=id,name=name,age=age,sex=sex)
+        cust.save()
+        return JsonResponse({"status":1})
     # 插入失败，存在了
-    return JsonResponse({"status":0,"exist":1})
+    return JsonResponse({"status":0})
 
 
 def customer_select(request):
@@ -51,7 +45,7 @@ def customer_modify(request):
     try:
         cust = customer.objects.get(id=request.GET.get('id'))
     except web.models.customer.DoesNotExist:
-        return HttpResponse("不存在此人，无法修改！")
+        return JsonResponse({'status':0})
     if request.GET.get('name'):
         cust.name = request.GET.get('name')
     if request.GET.get('age'):
@@ -59,19 +53,19 @@ def customer_modify(request):
     if request.GET.get('sex'):
         cust.sex = request.GET.get('sex')
     cust.save()
-    mp = {'id': cust.id, '姓名': cust.name, '年龄': cust.age, '性别': cust.sex}
-    arr = [mp]
-    return HttpResponse(arr)
+    return JsonResponse({'status':1})
 
 
 def customer_delete(request):
-    mobile = request.GET.get('mobile')
+    id = request.GET.get('id')
     try:
-        cust = customer.objects.get(mobile=mobile)
-        cust.delete()
-    except web.models.customer.DoesNotExist:
-        return HttpResponse(mobile + "查无此人！")
-    return HttpResponse(mobile + "删除成功！")
+        with connection.cursor() as cur:
+            sql = f"delete from customer where id='{id}'"
+            cur.execute(sql)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status':0})
+    return JsonResponse({'status': 1})
 
 
 def administrator_insert(request):
@@ -86,29 +80,33 @@ def administrator_insert(request):
         admin = administrator(id=id, mobile=mobile, name=name,
                               age=age, sex=sex)
         admin.save()
-        return HttpResponse("管理人员" + id + "插入成功")
-    return HttpResponse("管理人员" + id + "已存在")
+        return JsonResponse({'status':1})
+    return JsonResponse({'status':0})
 
 
 def administrator_select(request):
     sel = request.GET.get('id')
     sql = f"select * from administrator where id='{sel}'"
-    # django 执行原生的sql语句
     result = administrator.objects.raw(sql)
-    arr = []
+    content = {1:1}
     for i in result:
-        content = {'编号': i.id, '姓名': i.name, '年龄': i.age, '性别': i.sex, '手机': i.mobile}
-        arr.append(content)
-    print(arr)
-    print(type(arr))
-    return HttpResponse(arr)
+        content = {'admin_id': i.id, 'name': i.name, 'age': i.age, 'sex': i.sex, 'mobile': i.mobile}
+    arr = []
+    sql = f"select * from status where administrator_id='{sel}'"
+    result = administrator.objects.raw(sql)
+    for i in result:
+        sta = {'court_id':i.court_id,'customer':i.customer,
+               'year': i.occupy_year, 'month': i.occupy_month,
+               'date': i.occupy_date, 'hour': i.occupy_hour}
+        arr.append(sta)
+    return JsonResponse({'msg':content,'data':arr})
 
 
 def administrator_modify(request):
     try:
         admin = administrator.objects.get(id=request.GET.get('id'))
     except web.models.administrator.DoesNotExist:
-        return HttpResponse("不存在此人，无法修改！")
+        return JsonResponse({'status':0})
     if request.GET.get('name'):
         admin.name = request.GET.get('name')
     if request.GET.get('age'):
@@ -118,19 +116,20 @@ def administrator_modify(request):
     if request.GET.get('mobile'):
         admin.mobile = request.GET.get('mobile')
     admin.save()
-    mp = {'编号': admin.id, '姓名': admin.name, '年龄': admin.age, '性别': admin.sex, '手机': admin.mobile}
-    arr = [mp]
-    return HttpResponse(arr)
+    return JsonResponse({'status':1})
 
 
 def administrator_delete(request):
     id = request.GET.get('id')
     try:
-        admin = administrator.objects.get(id=id)
-        admin.delete()
-    except web.models.administrator.DoesNotExist:
-        return HttpResponse(id + "查无此人！")
-    return HttpResponse(id + "删除成功！")
+        administrator.objects.get(id=id)
+        with connection.cursor() as cur:
+            sql = f"delete from administrator where id='{id}'"
+            cur.execute(sql)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 0})
+    return JsonResponse({'status': 1})
 
 
 def court_insert(request):
