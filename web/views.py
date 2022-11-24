@@ -180,24 +180,30 @@ def court_insert(request):
     except court.DoesNotExist:
         crt = court(id=id, location=location, service_start_time=service_start_time, service_end_time=service_end_time)
         crt.save()
-        return HttpResponse(
-            [{'球场编号': id, '位置': location, '开始运营时间': service_start_time, '结束运营时间': service_end_time}])
-    return HttpResponse(id + '已存在')
+        return JsonResponse({'status':1})
+    return JsonResponse({'status':0})
 
 
 def court_select(request):
     sel = request.GET.get('id')
+    time = request.GET.get('time').split('-')
+    time = [int(i) for i in time]
     sql = f"select * from court where id='{sel}'"
-    # django 执行原生的sql语句
     result = court.objects.raw(sql)
-    arr = []
+    if not result: return JsonResponse({'msg':{},'data':[]})
+    content = {'id': result[0].id,'location': result[0].location,
+               'start': result[0].service_start_time,
+               'end': result[0].service_end_time}
+
+    res = []
+    arr = [0 for i in range(24)]
+    sql = f"select * from status where court_id='{sel}' and occupy_year='{time[0]}' and occupy_month='{time[1]}' and occupy_date='{time[2]}'"
+    result = status.objects.raw(sql)
     for i in result:
-        content = {'球场编号': i.id, '球场位置': i.location, '运营开始时间': i.service_start_time,
-                   '运营结束时间': i.service_end_time}
-        arr.append(content)
-    print(arr)
-    print(type(arr))
-    return HttpResponse(arr)
+        arr[i.occupy_hour] = 1
+    for i in range(24):
+        if not arr[i]: res.append({'hour':i})
+    return JsonResponse({'msg':content,'data':res})
 
 
 def court_modify(request):

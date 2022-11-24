@@ -28,9 +28,9 @@ class court(models.Model):
     location = models.CharField('位置', max_length=20)
     # 时间采用左端点包含后边一小时
     # 球场当天运营开始时间
-    service_start_time = models.IntegerField('开始时间', null=False)
+    service_start_time = models.IntegerField('开始时间', null=True, default=0)
     # 球场当天运营结束时间
-    service_end_time = models.IntegerField('结束时间', null=False)
+    service_end_time = models.IntegerField('结束时间', null=True, default=23)
 
     class Meta:
         db_table = 'court'
