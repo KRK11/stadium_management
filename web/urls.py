@@ -26,5 +26,6 @@ urlpatterns = [
     path('court/mod/',views.court_modify),
     path('court/del/',views.court_delete),
     path('status/add/',views.status_insert),
+    path('status/del/',views.status_delete),
     path('status/show/',views.status_display),
 ]
