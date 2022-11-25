@@ -23,7 +23,7 @@ class customer(models.Model):
 
 class court(models.Model):
     # 球场编号
-    id = models.IntegerField('编号', primary_key=True)
+    id = models.CharField('编号', primary_key=True,max_length=20)
     # 球场位置
     location = models.CharField('位置', max_length=20)
     # 时间采用左端点包含后边一小时
@@ -38,7 +38,7 @@ class court(models.Model):
 
 class administrator(models.Model):
     # 管理人员编号
-    id = models.IntegerField('编号', primary_key=True)
+    id = models.CharField('编号', primary_key=True,max_length=20)
     # 密码（哈希加密）
     password = models.CharField('密码', max_length=20,default=1234)
     # 姓名 字符串 最大长度20 不为空
@@ -59,9 +59,9 @@ class status(models.Model):
     # 每一条记录是1h
     # 自增主键防重复
     # 球场编号
-    court_id = models.IntegerField('球场编号')
+    court_id = models.CharField('球场编号',max_length=20)
     # 管理人员编号
-    administrator_id = models.IntegerField('管理人员编号')
+    administrator_id = models.CharField('管理人员编号',max_length=20)
     # 预定人员手机号
     customer = models.CharField('预定人员学号', max_length=20)
     # 被占用年份
@@ -74,3 +74,18 @@ class status(models.Model):
     occupy_hour = models.IntegerField('开始时间', null=True)
     class Meta:
         db_table = 'status'
+
+
+class online(models.Model):
+    # 编号
+    id = models.CharField('编号',max_length=20)
+    # 管理员/1 客户/0
+    admin = models.BooleanField('管理员',default=0)
+    # 密钥
+    secret_key = models.CharField('密钥',max_length=20,primary_key=True)
+    # 默认都可读
+    read_permission = models.BooleanField('读权限',default=1)
+    # 默认不可申请或者修改
+    modify_premission = models.BooleanField('修改权限',default=0)
+    class Meta:
+        db_table = 'online'

@@ -1,9 +1,11 @@
 import datetime
+import random
+import string
 
 from django.db import connection
 
 import web.models
-from web.models import customer, administrator, status, court
+from web.models import customer, administrator, status, court, online
 from django.http import HttpResponse, JsonResponse
 
 mod1 = int(1333333333333333331)
@@ -29,7 +31,16 @@ def customer_login(request):
     if not result: return JsonResponse({'status':0})
     if not password or not test_equal(password, result[0].password):
         return JsonResponse({'status': 0})
-    return JsonResponse({'status':1})
+    sql = f"select * from online where id='{id}' and admin=0"
+    current = online.objects.raw(sql)
+    if current: return JsonResponse({'status':1,"msg":current[0].secret_key})
+
+    secret_key = ''.join(random.choice(string.digits+string.ascii_lowercase) for i in range(15))
+    sql = f"insert into online(id, admin, read_permission, modify_premission,secret_key) values('{id}', 0, 1, 1, '{secret_key}')"
+
+    with connection.cursor() as cur:
+        cur.execute(sql)
+    return JsonResponse({'status':1,"msg":secret_key})
 
 
 def customer_register(request):
@@ -194,7 +205,6 @@ def court_select(request):
     content = {'id': result[0].id,'location': result[0].location,
                'start': result[0].service_start_time,
                'end': result[0].service_end_time}
-
     res = []
     arr = [0 for i in range(24)]
     sql = f"select * from status where court_id='{sel}' and occupy_year='{time[0]}' and occupy_month='{time[1]}' and occupy_date='{time[2]}'"
@@ -210,7 +220,7 @@ def court_modify(request):
     try:
         crt = court.objects.get(id=request.GET.get('id'))
     except web.models.customer.DoesNotExist:
-        return HttpResponse("不存在此场，无法修改！")
+        return JsonResponse({'status':0})
     if request.GET.get('location'):
         crt.location = request.GET.get('location')
     if request.GET.get('start'):
@@ -218,19 +228,19 @@ def court_modify(request):
     if request.GET.get('end'):
         crt.service_end_time = request.GET.get('end')
     crt.save()
-    arr = [{'编号': crt.id, '位置': crt.location, '运营开始时间': crt.service_start_time,
-            '运营结束时间': crt.service_end_time}]
-    return HttpResponse(arr)
+    return JsonResponse({'status':1})
 
 
 def court_delete(request):
     id = request.GET.get('id')
     try:
-        crt = court.objects.get(id=id)
-        crt.delete()
-    except court.DoesNotExist:
-        return HttpResponse(id + "查无此场！")
-    return HttpResponse(id + "删除成功！")
+        with connection.cursor() as cur:
+            sql = f"delete from court where id='{id}'"
+            cur.execute(sql)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 0})
+    return JsonResponse({'status': 1})
 
 
 def status_display(request):
@@ -240,11 +250,10 @@ def status_display(request):
     print(time)
     sql = f'select * from status where occupy_year={time[0]} and occupy_month={time[1]} and occupy_date={time[2]}'
     result = status.objects.raw(sql)
-    arr = [0 for i in range(24)]
+    arr = [{i:0} for i in range(24)]
     for i in result:
-        arr[i.occupy_hour] = 1
-    res = [{"时间": i} for i in range(24) if arr[i] == 0]
-    return HttpResponse(res)
+        arr[i.occupy_hour] = {i.occupy_hour:1}
+    return JsonResponse({"data":arr})
 
 
 def status_show(time):
@@ -264,11 +273,13 @@ def status_insert(request):
     # 年，月，日，时
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
+    arr = status_show(time)
+    if arr[time[3]]: return JsonResponse({'status':0})
     sta = status(court_id=court_id, customer=customer, administrator_id=administrator_id,
                  occupy_year=time[0], occupy_month=time[1], occupy_date=time[2],
                  occupy_hour=time[3])
     sta.save()
-    return HttpResponse([{"年": time[0], "月": time[1], "日": time[2], "时": time[3]}])
+    return JsonResponse({'status':1})
 
 
 def status_delete(request):
@@ -279,4 +290,4 @@ def status_delete(request):
     with connection.cursor() as cur:
         cur.execute(sql)
     print(sql)
-    return HttpResponse([{"顾客手机": customer, "年": time[0], "月": time[1], "日": time[2], "时": time[3]}])
+    return JsonResponse({'status':1})
