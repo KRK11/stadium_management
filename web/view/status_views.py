@@ -12,18 +12,6 @@ import web.models
 from web.models import customer, administrator, court, status, online
 from django.http import JsonResponse
 
-def status_display(request):
-    # 展示某年某月某日的球场安排情况
-    time = request.GET.get('time').split('-')
-    time = [int(i) for i in time]
-    print(time)
-    sql = f'select * from status where occupy_year={time[0]} and occupy_month={time[1]} and occupy_date={time[2]}'
-    result = status.objects.raw(sql)
-    arr = [{i:0} for i in range(24)]
-    for i in result:
-        arr[i.occupy_hour] = {i.occupy_hour:1}
-    return JsonResponse({"data":arr})
-
 
 def status_show(time, court_id):
     sql = f"select * from status where " \
@@ -69,6 +57,10 @@ def status_insert(request):
 
 
 def status_delete(request):
+    key = request.GET.get('key')
+    sql = f"select * from online where secret_key='{key}'"
+    content = online.objects.raw(sql)
+    if not content: return JsonResponse({"status": 0})
     customer = request.GET.get('customer')
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]

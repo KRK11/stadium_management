@@ -89,3 +89,14 @@ class online(models.Model):
     modify_premission = models.BooleanField('修改权限',default=0)
     class Meta:
         db_table = 'online'
+
+
+class application(models.Model):
+    court_id = models.CharField('场地编号',max_length=20)
+    customer = models.CharField('顾客编号',max_length=20)
+    occupy_year = models.IntegerField('年份')
+    occupy_month = models.IntegerField('月份')
+    occupy_date = models.IntegerField('日期')
+    occupy_hour = models.IntegerField('时间')
+    class Meta:
+        db_table = 'application'
