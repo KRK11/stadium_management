@@ -88,6 +88,7 @@ def court_delete(request):
     if not content: return JsonResponse({"status": 0})
     id = request.GET.get('id')
     try:
+        court.objects.get(id=id)
         with connection.cursor() as cur:
             sql = f"delete from court where id='{id}'"
             cur.execute(sql)

@@ -17,6 +17,7 @@ def application_insert(request):
     key = request.GET.get('key')
     sql = f"select * from online where secret_key='{key}' and admin=0"
     content = online.objects.raw(sql)
+    print(content[0].id)
     if not content: return JsonResponse({"status": 0})
     court_id = request.GET.get('id')
     time = request.GET.get('time').split('-')
