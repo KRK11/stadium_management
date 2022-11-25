@@ -17,7 +17,6 @@ def application_insert(request):
     key = request.GET.get('key')
     sql = f"select * from online where secret_key='{key}' and admin=0"
     content = online.objects.raw(sql)
-    print(content[0].id)
     if not content: return JsonResponse({"status": 0})
     court_id = request.GET.get('id')
     time = request.GET.get('time').split('-')
@@ -30,7 +29,7 @@ def application_insert(request):
     arr = status_views.status_show(time, court_id)
     for i in range(time[3], min(time[3] + hour, 24)):
         if arr[i]: return JsonResponse({'status': 0})
-        app = application(court_id=court_id, customer=customer,
+        app = application(court_id=court_id, customer=content[0].id,
                           occupy_year=time[0], occupy_month=time[1],
                           occupy_date=time[2], occupy_hour=i)
         app.save()
@@ -46,14 +45,21 @@ def application_delete(request):
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
     sql = f"select * from application where " \
-          f"customer='{content[0].id}' and" \
-          f"court_id='{court_id}'" \
-          f"occupy_year='{time[0]}'" \
-          f"occupy_month='{time[1]}'" \
-          f"occupy_date='{time[2]}'" \
-          f"occupy_hour='{time[3]}'"
+          f"customer='{content[0].id}' and " \
+          f"court_id='{court_id}' and " \
+          f"occupy_year={time[0]} and " \
+          f"occupy_month={time[1]} and " \
+          f"occupy_date={time[2]} and " \
+          f"occupy_hour={time[3]}"
     result = application.objects.raw(sql)
     if not result: return JsonResponse({'status': 0})
+    sql = f"delete from application where " \
+          f"customer='{content[0].id}' and " \
+          f"court_id='{court_id}' and " \
+          f"occupy_year={time[0]} and " \
+          f"occupy_month={time[1]} and " \
+          f"occupy_date={time[2]} and " \
+          f"occupy_hour={time[3]}"
     with connection.cursor() as cur:
         cur.execute(sql)
     return JsonResponse({'status': 1})
@@ -68,13 +74,14 @@ def application_reject(request):
     customer = request.GET.get('customer')
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
-    sql = f"select * from application where " \
-          f"customer='{customer}' and" \
-          f"court_id='{court_id}'" \
-          f"occupy_year='{time[0]}'" \
-          f"occupy_month='{time[1]}'" \
-          f"occupy_date='{time[2]}'" \
-          f"occupy_hour='{time[3]}'"
+    sql = f"delete from application where " \
+          f"customer='{customer}' and " \
+          f"court_id='{court_id}' and " \
+          f"occupy_year={time[0]} and " \
+          f"occupy_month={time[1]} and " \
+          f"occupy_date={time[2]} and " \
+          f"occupy_hour={time[3]}"
+    print(sql)
     with connection.cursor() as cur:
         cur.execute(sql)
     return JsonResponse({'status': 1})
@@ -90,12 +97,12 @@ def application_process(request):
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
     sql = f"select * from application where " \
-          f"customer='{customer}' and" \
-          f"court_id='{court_id}'" \
-          f"occupy_year='{time[0]}'" \
-          f"occupy_month='{time[1]}'" \
-          f"occupy_date='{time[2]}'" \
-          f"occupy_hour='{time[3]}'"
+          f"customer='{customer}' and " \
+          f"court_id='{court_id}' and " \
+          f"occupy_year={time[0]} and " \
+          f"occupy_month={time[1]} and " \
+          f"occupy_date={time[2]} and " \
+          f"occupy_hour={time[3]}"
     with connection.cursor() as cur:
         cur.execute(sql)
         sql = f"insert into status(court_id, administrator_id, " \

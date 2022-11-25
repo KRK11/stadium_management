@@ -67,21 +67,36 @@ def status_delete(request):
     court_id = request.GET.get('id')
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
-    customer, administrator = 0, 0
     if not content[0].admin:
-        customer = content[0].id
+        sql = f"select * from status where " \
+              f"customer='{content[0].id}' and " \
+              f"court_id='{court_id}' and " \
+              f"occupy_year='{time[0]}' and " \
+              f"occupy_month='{time[1]}' and " \
+              f"occupy_date='{time[2]}' and " \
+              f"occupy_hour='{time[3]}'"
+        sql1 = f"delete from status where " \
+              f"customer='{content[0].id}' and " \
+              f"court_id='{court_id}' and " \
+              f"occupy_year='{time[0]}' and " \
+              f"occupy_month='{time[1]}' and " \
+              f"occupy_date='{time[2]}' and " \
+              f"occupy_hour='{time[3]}'"
     else:
-        administrator = content[0].id
-    sql = f"select * from status where " \
-          f"customer='{customer}' and" \
-          f"administrator='{administrator}'" \
-          f"court_id='{court_id}'" \
-          f"occupy_year='{time[0]}'" \
-          f"occupy_month='{time[1]}'" \
-          f"occupy_date='{time[2]}'" \
-          f"occupy_hour='{time[3]}'"
+        sql = f"select * from status where " \
+              f"court_id='{court_id}' and " \
+              f"occupy_year='{time[0]}' and " \
+              f"occupy_month='{time[1]}' and " \
+              f"occupy_date='{time[2]}' and " \
+              f"occupy_hour='{time[3]}'"
+        sql1 = f"delete from status where " \
+               f"court_id='{court_id}' and " \
+               f"occupy_year='{time[0]}' and " \
+               f"occupy_month='{time[1]}' and " \
+               f"occupy_date='{time[2]}' and " \
+               f"occupy_hour='{time[3]}'"
     result = status.objects.raw(sql)
     if not result: return JsonResponse({'status': 0})
     with connection.cursor() as cur:
-        cur.execute(sql)
+        cur.execute(sql1)
     return JsonResponse({'status': 1})
