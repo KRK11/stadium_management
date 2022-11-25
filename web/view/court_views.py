@@ -35,7 +35,7 @@ def court_insert(request):
 
 def court_select(request):
     key = request.GET.get('key')
-    sql = f"select * from online where secret_key='{key}' and admin=1"
+    sql = f"select * from online where secret_key='{key}'"
     content = online.objects.raw(sql)
     if not content: return JsonResponse({"status": 0})
     sel = request.GET.get('location')

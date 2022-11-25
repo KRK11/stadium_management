@@ -32,6 +32,7 @@ urlpatterns = [
     path('administrator/del/', av.administrator_delete),
     # administrator_court
     path('administrator/court/add/', cov.court_insert),
+    path('customer/court/sel/', cov.court_select),
     path('administrator/court/sel/', cov.court_select),
     path('administrator/court/mod/', cov.court_modify),
     path('administrator/court/del/', cov.court_delete),
