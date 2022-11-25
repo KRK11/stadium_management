@@ -47,32 +47,19 @@ def court_select(request):
     sql = f"select * from court where location='{sel}'"
     result = court.objects.raw(sql)
     for i in result:
-        sql = f"select * from status where court_id='{i.id}'"
+        sql = f"select * from status where court_id='{i.id}'" \
+              f"and occupy_year='{time[0]}' " \
+              f"and occupy_month='{time[1]}' " \
+              f"and occupy_date='{time[2]}'"
         content = status.objects.raw(sql)
         free = [0 for i in range(24)]
         for j in content:
             free[j.occupy_hour] = 1
         msg.append({'id':i.id,'location':i.location,
-                    'start':i.service_start_time})
+                    'start': i.service_start_time,
+                    'end': i.service_end_time})
         arr.append(free)
-
-    return JsonResponse(arr)
-    if not result: return JsonResponse({'data':[]})
-    content = {'id': result[0].id,'location': result[0].location,
-               'start': result[0].service_start_time,
-               'end': result[0].service_end_time}
-    res = []
-    arr = [0 for i in range(24)]
-    sql = f"select * from status where court_id='{sel}' " \
-          f"and occupy_year='{time[0]}' " \
-          f"and occupy_month='{time[1]}' " \
-          f"and occupy_date='{time[2]}'"
-    result = status.objects.raw(sql)
-    for i in result:
-        arr[i.occupy_hour] = 1
-    for i in range(24):
-        if not arr[i]: res.append({'hour':i})
-    return JsonResponse({'msg':content,'data':res})
+    return JsonResponse({'msg':msg,'data':arr})
 
 
 def court_modify(request):
