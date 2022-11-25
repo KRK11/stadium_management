@@ -13,6 +13,7 @@ from web import views
 from web.view import customer_views as cv
 from web.view import administrator_views as av
 from web.view import court_views as cov
+from web.view import status_views as sv
 from django.urls import re_path
 
 urlpatterns = [
@@ -37,7 +38,7 @@ urlpatterns = [
     path('administrator/court/mod/', cov.court_modify),
     path('administrator/court/del/', cov.court_delete),
     # status
-    path('status/add/', views.status_insert),
-    path('status/del/', views.status_delete),
-    path('status/show/', views.status_display),
+    path('customer/status/add/', sv.status_insert),
+    path('customer/status/del/', sv.status_delete),
+    path('customer/status/show/', sv.status_display),
 ]
