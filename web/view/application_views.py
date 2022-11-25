@@ -103,11 +103,20 @@ def application_process(request):
           f"occupy_month={time[1]} and " \
           f"occupy_date={time[2]} and " \
           f"occupy_hour={time[3]}"
+    if not application.objects.raw(sql):
+        return JsonResponse({'status': 0})
+    sql = f"delete from application where " \
+          f"customer='{customer}' and " \
+          f"court_id='{court_id}' and " \
+          f"occupy_year={time[0]} and " \
+          f"occupy_month={time[1]} and " \
+          f"occupy_date={time[2]} and " \
+          f"occupy_hour={time[3]}"
     with connection.cursor() as cur:
         cur.execute(sql)
         sql = f"insert into status(court_id, administrator_id, " \
               f"customer, occupy_date, occupy_hour, occupy_month, " \
               f"occupy_year) values('{court_id}','0','{customer}'," \
-              f"'{time[2]}','{time[3]}','{time[1]}','{time[0]}')"
+              f"{time[2]},{time[3]},{time[1]},{time[0]})"
         cur.execute(sql)
     return JsonResponse({'status': 1})
