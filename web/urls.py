@@ -7,15 +7,12 @@
 **************************************************
 '''
 
-from django.contrib import admin
 from django.urls import path
-from web import views
-from web.view import customer_views as cv
 from web.view import administrator_views as av
-from web.view import court_views as cov
-from web.view import status_views as sv
 from web.view import application_views as apv
-from django.urls import re_path
+from web.view import court_views as cov
+from web.view import customer_views as cv
+from web.view import status_views as sv
 
 urlpatterns = [
     # customer
@@ -43,8 +40,8 @@ urlpatterns = [
     path('customer/status/del/', sv.status_delete),
     path('administrator/status/del/', sv.status_delete),
     # application
-    path('customer/application/add/',apv.application_insert),
-    path('customer/application/del/',apv.application_delete),
-    path('administrator/application/rej/',apv.application_reject),
-    path('administrator/application/pro/',apv.application_process),
+    path('customer/application/add/', apv.application_insert),
+    path('customer/application/del/', apv.application_delete),
+    path('administrator/application/rej/', apv.application_reject),
+    path('administrator/application/pro/', apv.application_process),
 ]

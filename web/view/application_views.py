@@ -8,9 +8,8 @@
 '''
 
 from django.db import connection
-import web.models
-from web.models import customer,administrator, status, online, application
 from django.http import JsonResponse
+from web.models import customer, online, application
 from web.view import status_views
 
 
@@ -31,8 +30,8 @@ def application_insert(request):
     for i in range(time[3], min(time[3] + hour, 24)):
         if arr[i]: return JsonResponse({'status': 0})
         app = application(court_id=court_id, customer=customer,
-                     occupy_year=time[0], occupy_month=time[1],
-                     occupy_date=time[2], occupy_hour=i)
+                          occupy_year=time[0], occupy_month=time[1],
+                          occupy_date=time[2], occupy_hour=i)
         app.save()
     return JsonResponse({'status': 1})
 
@@ -53,7 +52,7 @@ def application_delete(request):
           f"occupy_date='{time[2]}'" \
           f"occupy_hour='{time[3]}'"
     result = application.objects.raw(sql)
-    if not result: return JsonResponse({'status':0})
+    if not result: return JsonResponse({'status': 0})
     with connection.cursor() as cur:
         cur.execute(sql)
     return JsonResponse({'status': 1})
@@ -77,7 +76,7 @@ def application_reject(request):
           f"occupy_hour='{time[3]}'"
     with connection.cursor() as cur:
         cur.execute(sql)
-    return JsonResponse({'status':1})
+    return JsonResponse({'status': 1})
 
 
 def application_process(request):
@@ -103,4 +102,4 @@ def application_process(request):
               f"occupy_year) values('{court_id}','0','{customer}'," \
               f"'{time[2]}','{time[3]}','{time[1]}','{time[0]}')"
         cur.execute(sql)
-    return JsonResponse({'status':1})
+    return JsonResponse({'status': 1})
