@@ -9,9 +9,28 @@
 
 from django.db import connection
 from django.http import JsonResponse
-from web.models import customer, online, application
+from web.models import customer, court, online, application
 from web.view import status_views
 
+
+def application_show(time, court_id, customer_id):
+    sql = f"select * from application where " \
+          f"customer='{customer_id}' and " \
+          f"occupy_year={time[0]} and " \
+          f"occupy_month={time[1]} and " \
+          f"occupy_date={time[2]} and " \
+          f"court_id='{court_id}'"
+    result = application.objects.raw(sql)
+    arr = [0 for i in range(24)]
+    for i in result:
+        arr[i.occupy_hour] = 1
+    sql = f"select * from court where id='{court_id}'"
+    result = court.objects.raw(sql)
+    for i in range(0, result[0].service_start_time):
+        arr[i] = 1
+    for i in range(result[0].service_end_time + 1, 24):
+        arr[i] = 1
+    return arr
 
 def application_insert(request):
     key = request.GET.get('key')
@@ -26,7 +45,7 @@ def application_insert(request):
         hour = 1
     else:
         hour = int(hour)
-    arr = status_views.status_show(time, court_id)
+    arr = application_show(time, court_id, content[0].id)
     for i in range(time[3], min(time[3] + hour, 24)):
         if arr[i]: return JsonResponse({'status': 0})
         app = application(court_id=court_id, customer=content[0].id,
@@ -104,6 +123,9 @@ def application_process(request):
           f"occupy_date={time[2]} and " \
           f"occupy_hour={time[3]}"
     if not application.objects.raw(sql):
+        return JsonResponse({'status': 0})
+    arr = status_views.status_show(time, court_id)
+    if arr[time[3]]:
         return JsonResponse({'status': 0})
     sql = f"delete from application where " \
           f"customer='{customer}' and " \
