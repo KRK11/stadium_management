@@ -63,6 +63,10 @@ def court_select(request):
 
 
 def court_modify(request):
+    key = request.GET.get('key')
+    sql = f"select * from online where secret_key='{key}' and admin=1"
+    content = online.objects.raw(sql)
+    if not content: return JsonResponse({"status": 0})
     try:
         crt = court.objects.get(id=request.GET.get('id'))
     except web.models.customer.DoesNotExist:
@@ -78,6 +82,10 @@ def court_modify(request):
 
 
 def court_delete(request):
+    key = request.GET.get('key')
+    sql = f"select * from online where secret_key='{key}' and admin=1"
+    content = online.objects.raw(sql)
+    if not content: return JsonResponse({"status": 0})
     id = request.GET.get('id')
     try:
         with connection.cursor() as cur:
