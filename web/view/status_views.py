@@ -61,11 +61,24 @@ def status_delete(request):
     sql = f"select * from online where secret_key='{key}'"
     content = online.objects.raw(sql)
     if not content: return JsonResponse({"status": 0})
-    customer = request.GET.get('customer')
+    court_id = request.GET.get('id')
     time = request.GET.get('time').split('-')
     time = [int(i) for i in time]
-    sql = f'delete from status where customer={customer} and occupy_year={time[0]} and occupy_month={time[1]} and occupy_date={time[2]} and occupy_hour={time[3]}'
+    customer, administrator = 0, 0
+    if not content[0].admin:
+        customer = content[0].id
+    else:
+        administrator = content[0].id
+    sql = f"select * from status where " \
+          f"customer='{customer}' and" \
+          f"administrator='{administrator}'" \
+          f"court_id='{court_id}'" \
+          f"occupy_year='{time[0]}'" \
+          f"occupy_month='{time[1]}'" \
+          f"occupy_date='{time[2]}'" \
+          f"occupy_hour='{time[3]}'"
+    result = status.objects.raw(sql)
+    if not result: return JsonResponse({'status': 0})
     with connection.cursor() as cur:
         cur.execute(sql)
-    print(sql)
-    return JsonResponse({'status':1})
+    return JsonResponse({'status': 1})

@@ -39,11 +39,12 @@ urlpatterns = [
     path('administrator/court/mod/', cov.court_modify),
     path('administrator/court/del/', cov.court_delete),
     # status
-    path('customer/status/add/', sv.status_insert),
     path('administrator/status/add/', sv.status_insert),
     path('customer/status/del/', sv.status_delete),
     path('administrator/status/del/', sv.status_delete),
     # application
-    path('customer/application/add',apv.application_insert),
-    path('customer/application/del',apv.application_delete),
+    path('customer/application/add/',apv.application_insert),
+    path('customer/application/del/',apv.application_delete),
+    path('administrator/application/rej/',apv.application_reject),
+    path('administrator/application/pro/',apv.application_process),
 ]
