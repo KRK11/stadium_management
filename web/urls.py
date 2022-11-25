@@ -11,6 +11,7 @@ from django.contrib import admin
 from django.urls import path
 from web import views
 from web.view import customer_views as cv
+from web.view import administrator_views as av
 from django.urls import re_path
 
 urlpatterns = [
@@ -22,11 +23,11 @@ urlpatterns = [
     path('customer/mod/', cv.customer_modify),
     path('customer/del/', cv.customer_delete),
     # administrator
-    path('administrator/login/', views.administrator_login),
-    path('administrator/register/', views.administrator_register),
-    path('administrator/sel/', views.administrator_select),
-    path('administrator/mod/', views.administrator_modify),
-    path('administrator/del/', views.administrator_delete),
+    path('administrator/login/', av.administrator_login),
+    path('administrator/register/', av.administrator_register),
+    path('administrator/sel/', av.administrator_select),
+    path('administrator/mod/', av.administrator_modify),
+    path('administrator/del/', av.administrator_delete),
     # court
     path('court/add/', views.court_insert),
     path('court/sel/', views.court_select),

@@ -74,9 +74,8 @@ def customer_get(sel):
     sql = f"select * from status where customer='{sel}'"
     result = status.objects.raw(sql)
     for i in result:
-        sta = {'court_id': i.court_id, 'administrator_id': i.administrator_id,
-               'year': i.occupy_year, 'month': i.occupy_month,
-               'date': i.occupy_date, 'hour': i.occupy_hour}
+        sta = {'court_id': i.court_id, 'year': i.occupy_year,
+               'month': i.occupy_month, 'date': i.occupy_date, 'hour': i.occupy_hour}
         arr.append(sta)
     return content, arr
 
@@ -120,7 +119,7 @@ def customer_delete(request):
             cur.execute(sql)
             sql = f"delete from status where customer='{id}'"
             cur.execute(sql)
-            sql = f"delete from online where id='{id}'"
+            sql = f"delete from online where id='{id}' and admin=0"
             cur.execute(sql)
     except Exception as e:
         print(e)
