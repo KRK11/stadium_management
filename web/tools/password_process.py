@@ -13,7 +13,7 @@ mod2 = int(1) << 64
 def get_hash(password):
     hash = int(0)
     for i in password:
-        hash = (hash * mod1 + int(i)) % mod2
+        hash = (hash * mod1 + ord(i)) % mod2
     return str(hash)
 
 

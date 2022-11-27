@@ -84,6 +84,25 @@ def application_delete(request):
     return JsonResponse({'status': 1})
 
 
+def application_display(request):
+    key = request.GET.get('key')
+    sql = f"select * from online where secret_key='{key}'"
+    content = online.objects.raw(sql)
+    if not content: return JsonResponse({"status": 0})
+    arr = []
+    if not content[0].admin:
+        sql = f"select * from application where id='{content[0].id}'"
+        result = application.objects.raw(sql)
+    else:
+        sql = f"select * from application"
+        result = application.objects.raw(sql)
+    for i in result:
+        arr.append({'court_id':i.court_id,'customer':i.customer,
+                    'year':i.occupy_year,'month':i.occupy_month,
+                    'date':i.occupy_date,'hour':i.occupy_hour})
+    return JsonResponse({'status':1,'data':arr})
+
+
 def application_reject(request):
     key = request.GET.get('key')
     sql = f"select * from online where secret_key='{key}' and admin=1"

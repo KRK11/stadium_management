@@ -42,6 +42,7 @@ urlpatterns = [
     # application
     path('customer/application/add/', apv.application_insert),
     path('customer/application/del/', apv.application_delete),
+    path('administrator/application/sel/', apv.application_),
     path('administrator/application/rej/', apv.application_reject),
     path('administrator/application/pro/', apv.application_process),
 ]
