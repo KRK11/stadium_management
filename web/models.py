@@ -6,8 +6,8 @@ from django.db import models
 
 
 class customer(models.Model):
-    # 学号 unique=True 该字段唯一，为主键
-    id = models.CharField('学号', primary_key=True, max_length=20)
+    # 账号 unique=True 该字段唯一，为主键
+    id = models.CharField('账号', primary_key=True, max_length=20)
     # 密码（哈希加密）
     password = models.CharField('密码', max_length=20, default=1234)
     # 姓名 字符串 最大长度20 不为空
@@ -63,7 +63,7 @@ class status(models.Model):
     # 管理人员编号
     administrator_id = models.CharField('管理人员编号', max_length=20)
     # 预定人员手机号
-    customer = models.CharField('预定人员学号', max_length=20)
+    customer = models.CharField('预定人员账号', max_length=20)
     # 被占用年份
     occupy_year = models.IntegerField('开始年份', null=True)
     # 被占用月份
